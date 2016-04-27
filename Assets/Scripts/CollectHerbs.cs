@@ -16,13 +16,19 @@ public class CollectHerbs : MonoBehaviour
         Run,
         Idle,
         Return,
-        Finished
+        Finished,
+        Collect
     }
 
-    void Start()
+    void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
+
+    }
+
+    void OnEnable()
+    {
         start = transform.position;
         lastState = State.Idle;
         state = State.Run;
@@ -41,20 +47,19 @@ public class CollectHerbs : MonoBehaviour
         anim.Play("Running");
     }
 
-    void Idle()
+    void Collect()
     {
-        idleTimer += Time.deltaTime;
-        //agent.destination = transform.position;
-        anim.Play("Idle");
+        agent.destination = transform.position;
+        anim.Play("Collect");
         anim.speed = 1;
     }
 
-    void UpdateTimers()
+    void Idle()
     {
-        if (idleTimer > 3f)
-            idleTimer = 0f;
-        else if (idleTimer > 0)
-            idleTimer += Time.deltaTime;
+        idleTimer += Time.deltaTime;
+        agent.destination = transform.position;
+        anim.Play("Idle");
+        anim.speed = 1;
     }
 
     bool ReachedDestination()
@@ -63,10 +68,11 @@ public class CollectHerbs : MonoBehaviour
         {
             if (agent.remainingDistance <= agent.stoppingDistance)
             {
-                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-                {
-                    return true;
-                }
+                return true;
+                //if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+                //{
+                //    return true;
+                //}
             }
         }
         return false;
@@ -77,10 +83,9 @@ public class CollectHerbs : MonoBehaviour
         if (!ReachedDestination())
             return;
         if (state == State.Run)
-            state = State.Idle;
-        else if (state == State.Idle && idleTimer > collectDuration)
+            state = State.Collect;
+        else if (state == State.Collect && AnimIsFinished())
         {
-            idleTimer = 0f;
             state = State.Return;
         }
         else if (state == State.Return)
@@ -88,26 +93,42 @@ public class CollectHerbs : MonoBehaviour
     }
     void EndLife()
     {
-        Destroy(this.gameObject);
+        gameObject.SetActive(false);
     }
+
+    bool AnimIsFinished()
+    {
+        return (anim.GetCurrentAnimatorStateInfo(0).normalizedTime > 1 && !anim.IsInTransition(0));
+    }
+
+    void SetAnimationSpeed()
+    {
+        if (state == State.Run)
+            anim.speed = agent.velocity.sqrMagnitude / 32;
+    }
+
     void Update()
     {
         UpdateState();
-        if (state == lastState && state != State.Idle)
+        SetAnimationSpeed();
+        if (state == lastState)
             return;
         switch(state)
         {
             case State.Run:
                 GoToHerbs();
                 break;
-            case State.Idle:
-                Idle();
+            case State.Collect:
+                Collect();
                 break;
             case State.Return:
                 GoToStart();
                 break;
             case State.Finished:
                 EndLife();
+                break;
+            case State.Idle:
+                Idle();
                 break;
         }
         lastState = state;

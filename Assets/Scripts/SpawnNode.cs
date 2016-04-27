@@ -3,17 +3,10 @@ using System.Collections;
 
 public class SpawnNode : MonoBehaviour
 {
-    public GameObject mySpawn;
-    private Quaternion rot;
-
-	// Use this for initialization
-	void Start ()
-	{
-	    transform.LookAt(Vector3.zero);
-	}
-
-    public void Spawn()
+    public void Spawn(GameObject spawn)
     {
-        Instantiate(mySpawn, transform.position, Quaternion.identity);
+        spawn.transform.position = transform.position;
+        spawn.transform.rotation = transform.rotation;
+        spawn.SetActive(true);
     }
 }
