@@ -104,7 +104,7 @@ public class CollectHerbs : MonoBehaviour
     void SetAnimationSpeed()
     {
         if (state == State.Run)
-            anim.speed = agent.velocity.sqrMagnitude / 32;
+            anim.speed = agent.velocity.sqrMagnitude / 4;
     }
 
     void Update()
