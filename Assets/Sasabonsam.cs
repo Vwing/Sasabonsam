@@ -4,11 +4,13 @@ using System.Collections;
 public class Sasabonsam : MonoBehaviour {
     public Transform leftLeg;
     public Transform rightLeg;
+    public Transform glue;
     [Tooltip("Time in seconds to descend fully")]
     public float descentTime = 3f;
     [Tooltip("Time in seconds for legs to stay in tree")]
     public float eatTime = 2f;
     public State state = State.Descending;
+    public Transform gluedMmoatia;
 
     private float maxScale = 4.3f; //max scale leg needs to be to reach mmoatia
     private float minScale = .1f; //min scale leg needs to be to be hidden
@@ -43,6 +45,18 @@ public class Sasabonsam : MonoBehaviour {
                 if (timer >= eatTime)
                 {
                     timer = 0f;
+                    if(gluedMmoatia)
+                    {
+                        NavMeshAgent mmoatiaAgent = gluedMmoatia.GetComponent<NavMeshAgent>();
+                        if (mmoatiaAgent)
+                            mmoatiaAgent.enabled = true;
+                        CollectHerbs mmoatiaHerbs = gluedMmoatia.GetComponent<CollectHerbs>();
+                        if (mmoatiaHerbs)
+                            mmoatiaHerbs.enabled = true;
+                        gluedMmoatia.SetParent(null);
+                        gluedMmoatia.gameObject.SetActive(false);
+                        gluedMmoatia = null;
+                    }
                     state = State.Descending;
                 }
                 break;
@@ -65,10 +79,19 @@ public class Sasabonsam : MonoBehaviour {
                 }
                 break;
             case State.Waiting:
-                //temp to see if works
-                if (timer >= eatTime)
+                if(gluedMmoatia)
                 {
                     timer = 0f;
+                    Animator mmoatiaAnim = gluedMmoatia.GetComponent<Animator>();
+                    if(mmoatiaAnim)
+                        mmoatiaAnim.Stop();
+                    NavMeshAgent mmoatiaAgent = gluedMmoatia.GetComponent<NavMeshAgent>();
+                    if (mmoatiaAgent)
+                        mmoatiaAgent.enabled = false;
+                    CollectHerbs mmoatiaHerbs = gluedMmoatia.GetComponent<CollectHerbs>();
+                    if (mmoatiaHerbs)
+                        mmoatiaHerbs.enabled = false;
+                    gluedMmoatia.SetParent(glue);
                     state = State.Ascending;
                 }
                 break;
